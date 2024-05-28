@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>IOT House</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- <base href="http://ec2-18-219-49-109.us-east-2.compute.amazonaws.com/"> -->
+        <base href="http://localhost:5000/">
+    </head>
+    <body>
+        <div class="min-h-screen bg-bkg text-content flex flex-col overflow-hidden" data-theme="light">
+            <div class="py-4 px-6 flex justify-between items-center" id="header">
+                <div>
+                    <h1 class="text-lg font-bold hover:bg-accent-2">IOT House</h1>
+                </div>
+                <div>
+                    <button id="dark-mode-toggle" class="focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-dark dark:text-light" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM5 10a5 5 0 019.858-1.693l1.452-1.451A7 7 0 0110 17a6.98 6.98 0 01-5.075-2.192l1.458-1.458A4.996 4.996 0 015 10zm10-5a5 5 0 00-9.858 1.693L3.69 7.144A6.98 6.98 0 0110 3a6.98 6.98 0 015.307 2.426l-1.458 1.458A4.996 4.996 0 0015 5z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <main class="grid grid-cols-4 flex-1">
+                <div class="col-span-1 bg-bkg2 rounded-md m-2 p-2">
+                    <div class="w-full h-full rounded-lg border border-gray-200">
+                        <table class="w-full h-full divide-y-2 divide-gray-200 text-sm flex flex-col">
+                            <thead class="ltr:text-left flex-initial">
+                                <tr class="w-full flex flex-row">
+                                    <th class="whitespace-nowrap px-4 py-2 font-medium flex-1">Device Id</th>
+                                    <th class="whitespace-nowrap px-4 py-2 font-medium flex-1">Device Type</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 overflow-y-auto flex-1" hx-get="devices" hx-headers='{"Accept": "text/html"}' hx-trigger="load delay:1000ms" hx-swap="innerHTML" hx-on="click: handleRowClick(event)">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <div id="unity-container" class="unity-desktop">
+                        <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+                        <div id="unity-loading-bar">
+                            <div id="unity-logo"></div>
+                            <div id="unity-progress-bar-empty">
+                                <div id="unity-progress-bar-full">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-1 bg-bkg2 rounded-md m-2 p-2 flex flex-col">
+                    <div id="inspector" class="flex-1">
+                        <div id="sseHolder" class="hidden"></div>
+                        <div id="telemetries" class="flex flex-col overflow-y-auto h-full space-y-8"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <script>
+            function handleRowClick(event) {
+                const clickedRow = event.target.closest('tr');
+                if (clickedRow) {
+                    // Grab the content of the first <td> in the clicked <tr>
+                    const deviceId = clickedRow.querySelector('td')?.textContent;
+                    if (deviceId) {
+                        console.log('Clicked : ', deviceId);
+                        var inspectorHtml = `
+                            <div id="sse" class="h-full" hx-ext="sse" hx-trigger="load" sse-connect="telemetry/Subscribe/${deviceId}" sse-swap="Telemetry" hx-target="#sseChild">
+                                <div id="sseChild" class="hidden" hx-swap="innerHTML">
+                                </div>
+                                <div id="ghost" class="hidden" hx-trigger="load, sse:Telemetry" hx-target="this" hx-get="telemetry/${deviceId}?disaggregated=true&limit=10">
+                                </div>
+                            </div>
+                        `;
+                        var targetDiv = document.getElementById('sseHolder');
+                        targetDiv.innerHTML = inspectorHtml;
+                        htmx.process(targetDiv);
+                    } else {
+                        console.log('No deviceId found in this row');
+                    }
+                }
+            }
+        </script>
+        <script>
+            const targetElement = document.querySelector('body > div:first-child');
+            // Toggle dark mode class on button click
+            document.getElementById('dark-mode-toggle').addEventListener('click', function() {
+                const currentTheme = targetElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                targetElement.setAttribute('data-theme', newTheme);
+                if (newTheme === 'dark') {
+                    targetElement.classList.add('dark-theme');
+                } else {
+                    targetElement.classList.remove('dark-theme');
+                }
+            });
+
+            const headerHeight = document.getElementById('header').offsetHeight;
+            firstMainElement = document.querySelector('main');
+            firstMainElement.style.height = `calc(100vh - ${headerHeight}px)`;
+        </script>
+        <script>
+            function calculateTbodyHeight() {
+                const tableHeight = document.querySelector('table').clientHeight;
+                const tableHeadHeight = document.querySelector('thead').clientHeight;
+                maxHeight = tableHeight - tableHeadHeight;
+                console.log("table height = " + tableHeight + ", tbody height = " + maxHeight);
+                return maxHeight;
+            }
+        
+            // Set the height of the tbody element dynamically
+            function setTbodyHeight() {
+                const table = document.querySelector('tbody');
+                const maxHeight = calculateTbodyHeight();
+                table.style.maxHeight = `${maxHeight}px`;
+            }
+        
+            function setChartsHeight() {
+                const charts = document.getElementById('telemetries');
+                const inspectorHeight = document.getElementById('inspector').offsetHeight;
+                console.log("inspector height = " + inspectorHeight + ", charts height = " + inspectorHeight);
+                charts.style.height = `${inspectorHeight}px`;
+            }
+
+            // Call the function when the window is resized
+            window.addEventListener('resize', setTbodyHeight);
+            window.addEventListener('resize', setChartsHeight);
+        
+            // Call the function initially
+            setTbodyHeight();
+            setChartsHeight();
+        </script>
+        <script>
+            function getCssClassColor(className) {
+                const tempElement = document.createElement('div');
+                tempElement.className = className;
+                tempElement.style.display = 'none';
+                document.body.appendChild(tempElement);
+                const color = window.getComputedStyle(tempElement).color;
+                document.body.removeChild(tempElement);
+                return color;
+            }
+
+            document.getElementById("inspector").addEventListener('htmx:afterRequest', function(event) {
+                console.log("checking");
+                console.log(event.target);
+                console.log(event.target.id);
+                if (event.target.id == "ghost")
+                {
+                    var responseText = event.detail.xhr.responseText;
+                    var json;
+                    try{
+                        json = JSON.parse(responseText);
+                    } catch (error) {
+                        console.log ("Error parsing JSON");
+                    }
+                    console.log('Response from /data:', json);
+                    renderTelemetries(json);
+                }
+            });
+
+            function renderTelemetries(jsonArray) {
+                // Get the container for charts
+                const container = document.getElementById('telemetries');
+                container.innerHTML = '';
+
+                // Iterate over JSON data and generate charts
+                for (let i = 0; i < jsonArray.length; i++) {
+                    renderTelemetry(jsonArray[i]);
+                }
+            }
+
+            function renderTelemetry(json)
+            {
+                const container = document.getElementById('telemetries');
+                const telemetry = document.createElement('div');
+                const label = createLabel(json);
+                const chart = createChart(json);
+                telemetry.appendChild(label);
+                telemetry.appendChild(chart);
+                container.appendChild(telemetry);
+            }
+
+            function createChart(json) {
+                const device = json.device;
+                const telemetries = json.telemetries.map(item => parseFloat(item.value));
+
+                // Get the color from the CSS class
+                const textColor = getCssClassColor('text-content');
+
+                // Create container for each chart
+                const chartDiv = document.createElement('div');
+                chartDiv.classList.add('w-full', 'h-72', 'chart-container');
+                chartDiv.id = `chart_${json.telemetries[0].key}`;
+                const chartParentHeight = chartDiv.offsetHeight;
+
+                // Create canvas element for each chart
+                const canvas = document.createElement('canvas');
+                chartDiv.appendChild(canvas);
+                canvas.classList.add('w-full', 'h-full');
+                canvas.height = chartParentHeight;
+
+                // Generate Chart.js instance
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: json.telemetries.map(item => {
+                            const timestamp = new Date(item.timeStamp);
+                            return timestamp.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false 
+                            });
+                        }),
+                        datasets: [{
+                            label: `${json.telemetries[0].key}`,
+                            data: telemetries,
+                            fill: 'start',
+                            borderColor: textColor,
+                            // backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red),
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                            // legend: {
+                            //     position: 'chartArea',
+                            //     align: 'start',
+                            //     labels: {
+                            //         // This more specific font property overrides the global property
+                            //         color: textColor,
+                            //         font: {
+                            //             size: 12
+                            //         }
+                            //     }
+                            // }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: textColor, // Change to desired text color
+                                    font: {
+                                        size: 12
+                                    },
+                                    autoSkip: true // Automatically skip labels
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: textColor, // Change to desired text color
+                                    font: {
+                                        size: 12
+                                    },
+                                    autoSkip: true // Automatically skip labels
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                return chartDiv;
+            }
+
+            function createLabel (json) {
+                const device = json.device;
+                const lastTelemetry = json.telemetries[json.telemetries.length - 1];
+
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('w-full', 'label-container', 'px-2');
+                cardDiv.id = `label_${json.telemetries[0].key}`;
+
+                const div1 = document.createElement('div');
+                div1.classList.add('flex', 'flex-row', 'justify-center', 'items-center');
+
+                const p1 = document.createElement('p');
+                p1.textContent = lastTelemetry.key;
+                p1.classList.add('flex-grow', 'align-middle');
+
+                const p2 = document.createElement('p');
+                p2.classList.add('text-sm', 'align-middle');
+                const date = new Date(lastTelemetry.timeStamp);
+                const formattedTime = date.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                p2.textContent = formattedTime;
+
+                div1.appendChild(p1);
+                div1.appendChild(p2);
+
+                const div2 = document.createElement('div');
+
+                const h1 = document.createElement('h1');
+                h1.textContent = lastTelemetry.value;
+                h1.classList.add('text-2xl', 'font-mono', 'font-semibold');
+
+                div2.appendChild(h1);
+
+                cardDiv.appendChild(div1);
+                cardDiv.appendChild(div2);
+
+                return cardDiv;
+            }
+        </script>
+    </body>
+</html>

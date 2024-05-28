@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --color-bkg: 235, 235, 235;
+        --color-bkg2: 219, 215, 210;
+        --color-content: 27, 27, 27;
+        --color-accent1: 166, 166, 199;
+        --color-accent2: 215, 115, 51;
+    }
+
+    :root [data-theme="dark"] {
+        --color-bkg: 44, 44, 44;
+        --color-bkg2: 77, 77, 77;
+        --color-content: 235, 235, 235;
+        --color-accent1: 83, 140, 203;
+        --color-accent2: 191, 94, 0;
+    }
+
+    :test-root {
+        --color-bkg: rgb(235, 235, 235);
+        --color-bkg2: rgb(219, 215, 210);
+        --color-content: rgb(51, 138, 193);
+        --color-accent1: rgb(166, 166, 199);
+        --color-accent2: rgb(215, 115, 51);
+    }
+
+    :test-root-dark [data-theme="dark"] {
+        --color-bkg: rgb(44, 44, 44);
+        --color-bkg2: rgb(77, 77, 77);
+        --color-content: rgb(235, 235, 235);
+        --color-accent1: rgb(83, 140, 203);
+        --color-accent2: rgb(191, 94, 0);
+    }
+}
+
+/*
+@layer base {
+    :root {
+        --color-bkg: 210deg 40% 98%;
+        --color-content: 217deg 32.6% 17.5%;
+        --color-accent1: 288deg 95.8% 90.6%;
+        --color-accent2: 168deg 83.8% 78.2%;
+    }
+    @media (color-scheme:dark) {
+        :root {
+            --color-bkg: 217deg 32% 17%;
+            --color-content: 210deg 40% 98%;
+            --color-accent1: 288deg 95.8% 60.6%;
+            --color-accent2: 168deg 83.8% 48.2%;
+        }
+    }
+    :root [data-theme="dark"]{
+        --color-bkg: 217deg 32% 17%;
+        --color-content: 210deg 40% 98%;
+        --color-accent1: 288deg 95.8% 60.6%;
+        --color-accent2: 168deg 83.8% 48.2%;
+    }
+}
+*/
