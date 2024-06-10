@@ -36,22 +36,19 @@
                                     <th class="whitespace-nowrap px-4 py-2 font-medium flex-1">Device Type</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 overflow-y-auto flex-1" hx-get="devices" hx-headers='{"Accept": "text/html"}' hx-trigger="load delay:1000ms" hx-swap="innerHTML" hx-on="click: handleRowClick(event)">
+                            <tbody class="divide-y divide-gray-200 overflow-y-auto flex-1" 
+                                hx-get="devices" 
+                                hx-headers='{"Accept": "text/html"}' 
+                                hx-trigger="load delay:1000ms" 
+                                hx-swap="innerHTML"
+                                hx-on:click="handleRowClick(event)"
+                                hx-on::after-swap="window.addClass('tr', ['cursor-pointer', 'pointer-events-auto'], event)">
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="col-span-2">
-                    <div id="unity-container" class="unity-desktop">
-                        <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-                        <div id="unity-loading-bar">
-                            <div id="unity-logo"></div>
-                            <div id="unity-progress-bar-empty">
-                                <div id="unity-progress-bar-full">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-span-2 my-2 py-2">
+                    <iframe id="webgl" class="w-full h-full"></iframe>
                 </div>
                 <div class="col-span-1 bg-bkg2 rounded-md m-2 p-2 flex flex-col">
                     <div id="inspector" class="flex-1">
@@ -60,7 +57,36 @@
                     </div>
                 </div>
             </main>
-        </div>
+        </div> 
+        <script>
+            function addClass(targetTag, classNames, event) {
+                console.log(event);
+                event.target.querySelectorAll(targetTag).forEach(td => {
+                    classNames.forEach(className => {
+                        td.classList.add(className);
+                    });
+                });
+            }
+        </script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var iframe = document.getElementById('webgl');
+                var currentOrigin = window.location.origin;
+                var iframePath = "/public/webgl/index.html";
+                iframe.src = currentOrigin + iframePath;
+                console.log(currentOrigin + iframePath);
+                iframe.onload = function() {
+                    if (iframe.contentWindow)
+                    {
+                        console.log("Iframe loaded successfully.");
+                    }
+                    else
+                    {
+                        console.log("Iframe loaded un-successfully.");
+                    }
+                };
+            });
+        </script>
         <script>
             function handleRowClick(event) {
                 const clickedRow = event.target.closest('tr');
@@ -80,6 +106,8 @@
                         var targetDiv = document.getElementById('sseHolder');
                         targetDiv.innerHTML = inspectorHtml;
                         htmx.process(targetDiv);
+                        var iframe = document.getElementById('webgl');
+                        iframe.contentWindow.unityInstance.SendMessage('DeviceManager', 'SelectDevice', deviceId);
                     } else {
                         console.log('No deviceId found in this row');
                     }
@@ -137,12 +165,11 @@
         </script>
         <script>
             function getCssClassColor(className) {
-                const tempElement = document.createElement('div');
-                tempElement.className = className;
-                tempElement.style.display = 'none';
-                document.body.appendChild(tempElement);
-                const color = window.getComputedStyle(tempElement).color;
-                document.body.removeChild(tempElement);
+                // Get the first <div> under <body>
+                const element = document.querySelector('body > div.text-content');
+                // Get the computed style of the element
+                const computedStyle = getComputedStyle(element);
+                const color = computedStyle.color;
                 return color;
             }
 
@@ -223,7 +250,6 @@
                             data: telemetries,
                             fill: 'start',
                             borderColor: textColor,
-                            // backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red),
                             tension: 0.4
                         }]
                     },
