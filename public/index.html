@@ -9,8 +9,8 @@
         <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <!-- <base href="https://sample-iot.zackcheng.com/"> -->
-        <base href="http://localhost:5000/">
+        <base href="https://sample-iot.zackcheng.com/">
+        <!-- <base href="http://localhost:5000/"> -->
     </head>
     <body>
         <div class="min-h-screen bg-bkg text-content flex flex-col overflow-hidden" data-theme="light">
@@ -74,25 +74,21 @@
                 var currentOrigin = window.location.origin;
                 var path = window.location.pathname;
 
-                var iframPath;
-                if (path)
-                {
-                    iframPath = path + "/webgl/index.html";
-                }
-                else
-                {
+                var iframePath;
+
+                if (path) {
+                    iframePath = path + "/webgl/index.html";
+                } else {
                     iframePath = "/public/webgl/index.html";
                 }
 
                 iframe.src = currentOrigin + iframePath;
                 console.log(iframe.src);
                 iframe.onload = function() {
-                    if (iframe.contentWindow)
-                    {
+                    if (iframe.contentWindow) {
                         console.log("Iframe loaded successfully.");
                     }
-                    else
-                    {
+                    else {
                         console.log("Iframe loaded un-successfully.");
                     }
                 };
