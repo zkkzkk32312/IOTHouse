@@ -1,9 +1,9 @@
 const cacheName = "HardcoreDev-IOT_House-0.1.0";
 const contentToCache = [
     "Build/20240613_Gzip.loader.js",
-    "Build/20240613_Gzip.framework.js.gz",
-    "Build/20240613_Gzip.data.gz",
-    "Build/20240613_Gzip.wasm.gz",
+    "Build/20240613_Gzip.framework.js.unityweb",
+    "Build/20240613_Gzip.data.unityweb",
+    "Build/20240613_Gzip.wasm.unityweb",
     "TemplateData/style.css"
 
 ];
