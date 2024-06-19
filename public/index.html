@@ -144,7 +144,8 @@
                     iframePath = "/public/webgl/index.html";
                 }
 
-                iframe.src = currentOrigin + iframePath + "?cache_buster=" + new Date().getTime();
+                // iframe.src = currentOrigin + iframePath + "?cache_buster=" + new Date().getTime();
+                iframe.src = currentOrigin + iframePath;
                 console.log(iframe.src);
 
                 iframe.onload = function() {
