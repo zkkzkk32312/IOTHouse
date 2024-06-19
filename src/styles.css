@@ -7,6 +7,7 @@
         --color-bkg: 235, 235, 235;
         --color-bkg2: 219, 215, 210;
         --color-content: 27, 27, 27;
+        --color-darkmodeicon: 255, 222, 89;
         --color-accent1: 166, 166, 199;
         --color-accent2: 215, 115, 51;
     }
@@ -15,6 +16,7 @@
         --color-bkg: 44, 44, 44;
         --color-bkg2: 77, 77, 77;
         --color-content: 235, 235, 235;
+        --color-darkmodeicon: 235, 235, 235;
         --color-accent1: 83, 140, 203;
         --color-accent2: 191, 94, 0;
     }
@@ -23,6 +25,7 @@
         --color-bkg: rgb(235, 235, 235);
         --color-bkg2: rgb(219, 215, 210);
         --color-content: rgb(51, 138, 193);
+        --color-darkmodeicon: rgb(255, 222, 89);
         --color-accent1: rgb(166, 166, 199);
         --color-accent2: rgb(215, 115, 51);
     }
@@ -31,6 +34,7 @@
         --color-bkg: rgb(44, 44, 44);
         --color-bkg2: rgb(77, 77, 77);
         --color-content: rgb(235, 235, 235);
+        --color-darkmodeicon: rgb(235, 235, 235);
         --color-accent1: rgb(83, 140, 203);
         --color-accent2: rgb(191, 94, 0);
     }

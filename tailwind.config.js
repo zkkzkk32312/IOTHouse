@@ -15,6 +15,15 @@ module.exports = {
         bkg: "rgb(var(--color-bkg), <alpha-value>)",
         bkg2: "rgb(var(--color-bkg2), <alpha-value>)",
         content: "rgb(var(--color-content), <alpha-value>)",
+        darkmodeicon: "rgb(var(--color-darkmodeicon), <alpha-value>)",
+      },
+      keyframes: {
+        spin: {
+          to: { transform: 'rotate(360deg)' },
+        },
+      },
+      animation: {
+        'spin-once': 'spin 0.5s', // 0.5s duration, linear timing function, run once
       },
     },
   },
