@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8">
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
         <title>IOT House</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,8 +29,8 @@
                     </div>
                 </div>
             </div>
-            <main class="grid grid-cols-4 flex-1">
-                <div class="col-span-1 bg-bkg2 rounded-md m-2 p-2">
+            <main class="grid grid-cols-4 grid-rows-2 flex-1">
+                <div class="lg:order-1 lg:col-span-1 lg:row-span-2 order-2 col-span-2 row-span-1 bg-bkg2 rounded-md m-2 p-2">
                     <div class="w-full h-full rounded-lg border border-gray-200">
                         <table class="w-full h-full divide-y-2 divide-gray-200 text-sm flex flex-col">
                             <thead class="ltr:text-left flex-initial">
@@ -50,10 +50,10 @@
                         </table>
                     </div>
                 </div>
-                <div class="col-span-2 my-2 py-2">
+                <div class="lg:order-2 lg:col-span-2 lg:row-span-2 order-1 col-span-4 row-span-1 my-2 py-2">
                     <iframe id="webgl" class="w-full h-full"></iframe>
                 </div>
-                <div class="col-span-1 bg-bkg2 rounded-md m-2 p-2 flex flex-col">
+                <div class="lg:order-3 lg:col-span-1 lg:row-span-2 order-3 col-span-2 row-span-1 bg-bkg2 rounded-md m-2 p-2 flex flex-col">
                     <div id="inspector" class="flex-1">
                         <div id="sseHolder" class="hidden"></div>
                         <div id="telemetries" class="flex flex-col overflow-y-auto h-full space-y-8"></div>
@@ -146,6 +146,7 @@
 
                 // iframe.src = currentOrigin + iframePath + "?cache_buster=" + new Date().getTime();
                 iframe.src = currentOrigin + iframePath;
+
                 console.log(iframe.src);
 
                 iframe.onload = function() {
