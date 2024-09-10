@@ -1,0 +1,10 @@
+headers:
+  /public/webgl/.+\.data\.gz$:
+    Content-Encoding: gzip
+    Content-Type: application/gzip
+  /public/webgl/.+\.js\.gz$:
+    Content-Encoding: gzip
+    Content-Type: application/javascript
+  /public/webgl/.+\.wasm\.gz$:
+    Content-Encoding: gzip
+    Content-Type: application/wasm
