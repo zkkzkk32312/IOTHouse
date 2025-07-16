@@ -10,17 +10,18 @@
         <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <base href="https://sample-iot.zackcheng.com/">
-        <!-- <base href="http://localhost:5000/"> -->
+        <!-- <base href="https://sample-iot.zackcheng.com/"> -->
+        <base href="http://localhost:5000/">
     </head>
     <body>
         <div class="min-h-screen bg-bkg text-content flex flex-col overflow-hidden" >
-            <div class="py-4 px-6 flex justify-between items-center" id="header">
+            <div class="py-2 px-6 flex justify-between items-center" id="header">
                 <div>
-                    <h1 class="text-2xl font-bold hover:bg-accent-2">IOT House</h1>
+                    <h1 class="text-3xl font-bold tracking-tight">IOT House</h1>
+                    <p class="text-xs text-gray-600 font-medium tracking-wide uppercase">Smart Home Dashboard</p>
                 </div>
                 <div>
-                    <div class="btn box-border bg-slate-200 w-[4.5rem] h-9 rounded-full px-2 shadow-inner shadow-neutral-300 relative flex items-center cursor-pointer">
+                    <div class="btn box-border bg-zinc-300 w-[4.5rem] h-9 rounded-full px-2 shadow-inner shadow-neutral-300 relative flex items-center cursor-pointer">
                         <div class="btn__indicator bg-bkg w-8 h-8 rounded-full absolute shadow-sm shadow-neutral-400 duration-500">
                           <div class="btn__icon-container w-full h-full flex justify-center items-center">
                             <i class="btn__icon text-darkmodeicon text-xl fa-solid animate-spin-once"></i>
@@ -30,30 +31,28 @@
                 </div>
             </div>
             <main class="grid grid-cols-4 grid-rows-2 flex-1">
-                <div class="lg:order-1 lg:col-span-1 lg:row-span-2 order-2 col-span-2 row-span-1 bg-bkg2 rounded-md m-2 p-2">
-                    <div class="w-full h-full rounded-lg border border-gray-200">
-                        <table class="w-full h-full divide-y-2 divide-gray-200 text-sm flex flex-col">
-                            <thead class="ltr:text-left flex-initial">
-                                <tr class="w-full flex flex-row">
-                                    <th class="whitespace-nowrap px-4 py-2 font-medium flex-1">Device Id</th>
-                                    <th class="whitespace-nowrap px-4 py-2 font-medium flex-1">Device Type</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 overflow-y-auto flex-1" 
-                                hx-get="devices" 
-                                hx-headers='{"Accept": "text/html"}' 
-                                hx-trigger="load delay:1000ms" 
-                                hx-swap="innerHTML"
-                                hx-on:click="handleRowClick(event)"
-                                hx-on::after-swap="window.addClass('tr', ['cursor-pointer', 'pointer-events-auto'], event)">
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="lg:order-1 lg:col-span-1 lg:row-span-2 order-2 col-span-2 row-span-1 bg-bkg2 rounded-md m-1">
+                    <table class="w-full h-full text-sm flex flex-col">
+                        <thead class="ltr:text-left flex-initial uppercase text-xs py-2 bg-bkg3 rounded-t-md">
+                            <tr class="w-full flex flex-row">
+                                <th class="whitespace-nowrap px-4 py-2 flex-1">Device Id</th>
+                                <th class="whitespace-nowrap px-4 py-2 flex-1">Device Type</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-custom overflow-y-auto flex-1" 
+                            hx-get="devices" 
+                            hx-headers='{"Accept": "text/html"}' 
+                            hx-trigger="load delay:1000ms" 
+                            hx-swap="innerHTML"
+                            hx-on:click="handleRowClick(event)"
+                            hx-on::after-swap="window.addClass('tr', ['cursor-pointer', 'pointer-events-auto'], event)">
+                        </tbody>
+                    </table>
                 </div>
-                <div class="lg:order-2 lg:col-span-2 lg:row-span-2 order-1 col-span-4 row-span-1 my-2 py-2">
+                <div class="lg:order-2 lg:col-span-2 lg:row-span-2 order-1 col-span-4 row-span-1 m-1">
                     <iframe id="webgl" class="w-full h-full"></iframe>
                 </div>
-                <div class="lg:order-3 lg:col-span-1 lg:row-span-2 order-3 col-span-2 row-span-1 bg-bkg2 rounded-md m-2 p-2 flex flex-col">
+                <div class="lg:order-3 lg:col-span-1 lg:row-span-2 order-3 col-span-2 row-span-1 bg-bkg2 rounded-md m-1 p-2 flex flex-col">
                     <div id="inspector" class="flex-1">
                         <div id="sseHolder" class="hidden"></div>
                         <div id="telemetries" class="flex flex-col overflow-y-auto h-full space-y-8"></div>
@@ -80,6 +79,7 @@
                 //if the dark mode was never activated
                 if(!darkmode){
                     store(false);
+                    body.setAttribute('data-theme', 'light');
                     icon.classList.add('fa-sun');
                 } else if( darkmode == 'true'){ //if the dark mode is activated
                     body.setAttribute('data-theme', 'dark');
@@ -368,7 +368,7 @@
 
                 const p1 = document.createElement('p');
                 p1.textContent = lastTelemetry.key;
-                p1.classList.add('flex-grow', 'align-middle');
+                p1.classList.add('grow', 'align-middle');
 
                 const p2 = document.createElement('p');
                 p2.classList.add('text-sm', 'align-middle');
