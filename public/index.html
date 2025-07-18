@@ -7,11 +7,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="styles.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="./dist/chat-widget.css">
         <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <base href="https://sample-iot.zackcheng.com/"> 
-        <!--<base href="http://localhost:5000/">-->
+        <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+        <script defer src="./dist/chat-widget.iife.js"></script>
+        <base href="https://sample-iot.zackcheng.com/">
+        <!-- <base href="https://localhost:5001/"> -->
     </head>
     <body>
         <div class="min-h-screen bg-bkg text-content flex flex-col overflow-hidden" >
@@ -20,6 +24,7 @@
                     <h1 class="text-3xl font-bold tracking-tight">IOT House</h1>
                     <p class="text-xs text-gray-600 font-medium tracking-wide uppercase">Smart Home Dashboard</p>
                 </div>
+                <div id="ai-chat-widget-container"></div>
                 <div>
                     <div class="btn box-border bg-zinc-300 w-[4.5rem] h-9 rounded-full px-2 shadow-inner shadow-neutral-300 relative flex items-center cursor-pointer">
                         <div class="btn__indicator bg-bkg w-8 h-8 rounded-full absolute shadow-sm shadow-neutral-400 duration-500">
@@ -35,8 +40,8 @@
                     <table class="w-full h-full text-sm flex flex-col">
                         <thead class="ltr:text-left flex-initial uppercase text-xs py-2 bg-bkg3 rounded-t-md">
                             <tr class="w-full flex flex-row">
-                                <th class="whitespace-nowrap px-4 py-2 flex-1">Device Id</th>
-                                <th class="whitespace-nowrap px-4 py-2 flex-1">Device Type</th>
+                                <th class="whitespace-nowrap px-4 py-2 flex-1 text-center">Device Id</th>
+                                <th class="whitespace-nowrap px-4 py-2 flex-1 text-center">Device Type</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-custom overflow-y-auto flex-1" 
@@ -397,6 +402,16 @@
 
                 return cardDiv;
             }
+        </script>
+        <script>
+            // 5. Wait for the page and all scripts to load, then render the widget
+            document.addEventListener("DOMContentLoaded", function() {
+                if (window.ChatWidget && typeof window.ChatWidget.render === 'function') {
+                    window.ChatWidget.render('ai-chat-widget-container');
+                } else {
+                    console.error("ChatWidget is not available. Check that the script is loaded correctly.");
+                }
+            });
         </script>
     </body>
 </html>
