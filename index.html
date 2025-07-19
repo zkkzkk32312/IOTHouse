@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>IOT House</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="./dist/chat-widget.css">
+        <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+        <script defer src="./dist/chat-widget.iife.js"></script>
+        <base href="https://sample-iot.zackcheng.com/">
+        <!-- <base href="https://localhost:5001/"> -->
+    </head>
+    <body>
+        <div class="min-h-screen bg-bkg text-content flex flex-col overflow-hidden" >
+            <div class="py-2 px-6 flex justify-between items-center" id="header">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">IOT House</h1>
+                    <p class="text-xs text-gray-600 font-medium tracking-wide uppercase">Smart Home Dashboard</p>
+                </div>
+                <div id="ai-chat-widget-container"></div>
+                <div>
+                    <div class="btn box-border bg-zinc-300 w-[4.5rem] h-9 rounded-full px-2 shadow-inner shadow-neutral-300 relative flex items-center cursor-pointer">
+                        <div class="btn__indicator bg-bkg w-8 h-8 rounded-full absolute shadow-sm shadow-neutral-400 duration-500">
+                          <div class="btn__icon-container w-full h-full flex justify-center items-center">
+                            <i class="btn__icon text-darkmodeicon text-xl fa-solid animate-spin-once"></i>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <main class="grid grid-cols-4 grid-rows-2 flex-1">
+                <div class="lg:order-1 lg:col-span-1 lg:row-span-2 order-2 col-span-2 row-span-1 bg-bkg2 rounded-md m-1">
+                    <table class="w-full h-full text-sm flex flex-col">
+                        <thead class="ltr:text-left flex-initial uppercase text-xs py-2 bg-bkg3 rounded-t-md">
+                            <tr class="w-full flex flex-row">
+                                <th class="whitespace-nowrap px-4 py-2 flex-1 text-center">Device Id</th>
+                                <th class="whitespace-nowrap px-4 py-2 flex-1 text-center">Device Type</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-custom overflow-y-auto flex-1" 
+                            hx-get="devices" 
+                            hx-headers='{"Accept": "text/html"}' 
+                            hx-trigger="load delay:1000ms" 
+                            hx-swap="innerHTML"
+                            hx-on:click="handleRowClick(event)"
+                            hx-on::after-swap="window.addClass('tr', ['cursor-pointer', 'pointer-events-auto'], event)">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="lg:order-2 lg:col-span-2 lg:row-span-2 order-1 col-span-4 row-span-1 m-1">
+                    <iframe id="webgl" class="w-full h-full"></iframe>
+                </div>
+                <div class="lg:order-3 lg:col-span-1 lg:row-span-2 order-3 col-span-2 row-span-1 bg-bkg2 rounded-md m-1 p-2 flex flex-col">
+                    <div id="inspector" class="flex-1">
+                        <div id="sseHolder" class="hidden"></div>
+                        <div id="telemetries" class="flex flex-col overflow-y-auto h-full space-y-8"></div>
+                    </div>
+                </div>
+            </main>
+        </div> 
+        <script>
+            const body = document.querySelector('body');
+            const btn = document.querySelector('.btn');
+            const indicator = document.querySelector('.btn__indicator');
+            const icon = document.querySelector('.btn__icon');
+
+            //function that stores the value true if the dark mode is activated or false if it's not.
+            function store(value){
+                localStorage.setItem('dark-theme', value);
+            }
+
+            //function that indicates if the "darkmode" property exists. It loads the page as we had left it.
+            function load(){
+                const darkmode = localStorage.getItem('dark-theme');
+                console.log(darkmode);
+
+                //if the dark mode was never activated
+                if(!darkmode){
+                    store(false);
+                    body.setAttribute('data-theme', 'light');
+                    icon.classList.add('fa-sun');
+                } else if( darkmode == 'true'){ //if the dark mode is activated
+                    body.setAttribute('data-theme', 'dark');
+                    body.classList.add('dark-theme');
+                    icon.classList.add('fa-moon');
+                    indicator.classList.add('translate-x-7');
+                } else if(darkmode == 'false'){ //if the dark mode exists but is disabled
+                    body.setAttribute('data-theme', 'light');
+                    icon.classList.add('fa-sun');
+                    indicator.classList.remove('translate-x-7');
+                }
+            }
+
+            load();
+
+            btn.addEventListener('click', () => {
+
+                body.classList.toggle('dark-theme');
+                icon.classList.add('animate-spin-once');
+
+                //save true or false
+                store(body.classList.contains('dark-theme'));
+
+                if(body.classList.contains('dark-theme')){
+                    body.setAttribute('data-theme', 'dark');
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                    indicator.classList.add('translate-x-7');
+                }else{
+                    body.setAttribute('data-theme', 'light');
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                    indicator.classList.remove('translate-x-7');
+                }
+
+                setTimeout( () => {
+                    icon.classList.remove('animate-spin-once');
+                }, 500)
+            })
+        </script>
+        <script>
+            function addClass(targetTag, classNames, event) {
+                console.log(event);
+                event.target.querySelectorAll(targetTag).forEach(td => {
+                    classNames.forEach(className => {
+                        td.classList.add(className);
+                    });
+                });
+            }
+        </script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var iframe = document.getElementById('webgl');
+                var currentOrigin = window.location.origin;
+                var path = window.location.pathname;
+
+                var iframePath;
+
+                if (path && !path.endsWith(".html")) {
+                    iframePath = path + "/webgl/index.html";
+                } else {
+                    iframePath = "/public/webgl/index.html";
+                }
+
+                // iframe.src = currentOrigin + iframePath + "?cache_buster=" + new Date().getTime();
+                iframe.src = currentOrigin + iframePath;
+
+                console.log(iframe.src);
+
+                iframe.onload = function() {
+                    if (iframe.contentWindow) {
+                        console.log("Iframe loaded successfully.");
+                    }
+                    else {
+                        console.log("Iframe loaded un-successfully.");
+                    }
+                };
+            });
+        </script>
+        <script>
+            function handleRowClick(event) {
+                const clickedRow = event.target.closest('tr');
+                if (clickedRow) {
+                    // Grab the content of the first <td> in the clicked <tr>
+                    const deviceId = clickedRow.querySelector('td')?.textContent;
+                    if (deviceId) {
+                        console.log('Clicked : ', deviceId);
+                        var inspectorHtml = `
+                            <div id="sse" class="h-full" hx-ext="sse" hx-trigger="load" sse-connect="telemetry/Subscribe/${deviceId}" sse-swap="Telemetry" hx-target="#sseChild">
+                                <div id="sseChild" class="hidden" hx-swap="innerHTML">
+                                </div>
+                                <div id="ghost" class="hidden" hx-trigger="load, sse:Telemetry" hx-target="this" hx-get="telemetry/${deviceId}?disaggregated=true&limit=10">
+                                </div>
+                            </div>
+                        `;
+                        var targetDiv = document.getElementById('sseHolder');
+                        targetDiv.innerHTML = inspectorHtml;
+                        htmx.process(targetDiv);
+                        var iframe = document.getElementById('webgl');
+                        iframe.contentWindow.unityInstance.SendMessage('DeviceManager', 'SelectDevice', deviceId);
+                    } else {
+                        console.log('No deviceId found in this row');
+                    }
+                }
+            }
+        </script>
+        <script>
+            const headerHeight = document.getElementById('header').offsetHeight;
+            firstMainElement = document.querySelector('main');
+            firstMainElement.style.height = `calc(100vh - ${headerHeight}px)`;
+        </script>
+        <script>
+            function calculateTbodyHeight() {
+                const tableHeight = document.querySelector('table').clientHeight;
+                const tableHeadHeight = document.querySelector('thead').clientHeight;
+                maxHeight = tableHeight - tableHeadHeight;
+                console.log("table height = " + tableHeight + ", tbody height = " + maxHeight);
+                return maxHeight;
+            }
+        
+            // Set the height of the tbody element dynamically
+            function setTbodyHeight() {
+                const table = document.querySelector('tbody');
+                const maxHeight = calculateTbodyHeight();
+                table.style.maxHeight = `${maxHeight}px`;
+            }
+        
+            function setChartsHeight() {
+                const charts = document.getElementById('telemetries');
+                const inspectorHeight = document.getElementById('inspector').offsetHeight;
+                console.log("inspector height = " + inspectorHeight + ", charts height = " + inspectorHeight);
+                charts.style.height = `${inspectorHeight}px`;
+            }
+
+            // Call the function when the window is resized
+            window.addEventListener('resize', setTbodyHeight);
+            window.addEventListener('resize', setChartsHeight);
+        
+            // Call the function initially
+            setTbodyHeight();
+            setChartsHeight();
+        </script>
+        <script>
+            function getCssClassColor(className) {
+                // Get the first <div> under <body>
+                const element = document.querySelector('body > div.text-content');
+                // Get the computed style of the element
+                const computedStyle = getComputedStyle(element);
+                const color = computedStyle.color;
+                return color;
+            }
+
+            document.getElementById("inspector").addEventListener('htmx:afterRequest', function(event) {
+                console.log("checking");
+                console.log(event.target);
+                console.log(event.target.id);
+                if (event.target.id == "ghost")
+                {
+                    var responseText = event.detail.xhr.responseText;
+                    var json;
+                    try{
+                        json = JSON.parse(responseText);
+                    } catch (error) {
+                        console.log ("Error parsing JSON");
+                    }
+                    console.log('Response from /data:', json);
+                    renderTelemetries(json);
+                }
+            });
+
+            function renderTelemetries(jsonArray) {
+                // Get the container for charts
+                const container = document.getElementById('telemetries');
+                container.innerHTML = '';
+
+                // Iterate over JSON data and generate charts
+                for (let i = 0; i < jsonArray.length; i++) {
+                    renderTelemetry(jsonArray[i]);
+                }
+            }
+
+            function renderTelemetry(json)
+            {
+                const container = document.getElementById('telemetries');
+                const telemetry = document.createElement('div');
+                const label = createLabel(json);
+                const chart = createChart(json);
+                telemetry.appendChild(label);
+                telemetry.appendChild(chart);
+                container.appendChild(telemetry);
+            }
+
+            function createChart(json) {
+                const device = json.device;
+                const telemetries = json.telemetries.map(item => parseFloat(item.value));
+
+                // Get the color from the CSS class
+                const textColor = getCssClassColor('text-content');
+
+                // Create container for each chart
+                const chartDiv = document.createElement('div');
+                chartDiv.classList.add('w-full', 'h-72', 'chart-container');
+                chartDiv.id = `chart_${json.telemetries[0].key}`;
+                const chartParentHeight = chartDiv.offsetHeight;
+
+                // Create canvas element for each chart
+                const canvas = document.createElement('canvas');
+                chartDiv.appendChild(canvas);
+                canvas.classList.add('w-full', 'h-full');
+                canvas.height = chartParentHeight;
+
+                // Generate Chart.js instance
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: json.telemetries.map(item => {
+                            const timestamp = new Date(item.timeStamp);
+                            return timestamp.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false 
+                            });
+                        }),
+                        datasets: [{
+                            label: `${json.telemetries[0].key}`,
+                            data: telemetries,
+                            fill: 'start',
+                            borderColor: textColor,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                            // legend: {
+                            //     position: 'chartArea',
+                            //     align: 'start',
+                            //     labels: {
+                            //         // This more specific font property overrides the global property
+                            //         color: textColor,
+                            //         font: {
+                            //             size: 12
+                            //         }
+                            //     }
+                            // }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: textColor, // Change to desired text color
+                                    font: {
+                                        size: 12
+                                    },
+                                    autoSkip: true // Automatically skip labels
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: textColor, // Change to desired text color
+                                    font: {
+                                        size: 12
+                                    },
+                                    autoSkip: true // Automatically skip labels
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                return chartDiv;
+            }
+
+            function createLabel (json) {
+                const device = json.device;
+                const lastTelemetry = json.telemetries[json.telemetries.length - 1];
+
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('w-full', 'label-container', 'px-2');
+                cardDiv.id = `label_${json.telemetries[0].key}`;
+
+                const div1 = document.createElement('div');
+                div1.classList.add('flex', 'flex-row', 'justify-center', 'items-center');
+
+                const p1 = document.createElement('p');
+                p1.textContent = lastTelemetry.key;
+                p1.classList.add('grow', 'align-middle');
+
+                const p2 = document.createElement('p');
+                p2.classList.add('text-sm', 'align-middle');
+                const date = new Date(lastTelemetry.timeStamp);
+                const formattedTime = date.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                p2.textContent = formattedTime;
+
+                div1.appendChild(p1);
+                div1.appendChild(p2);
+
+                const div2 = document.createElement('div');
+
+                const h1 = document.createElement('h1');
+                h1.textContent = lastTelemetry.value;
+                h1.classList.add('text-2xl', 'font-mono', 'font-semibold');
+
+                div2.appendChild(h1);
+
+                cardDiv.appendChild(div1);
+                cardDiv.appendChild(div2);
+
+                return cardDiv;
+            }
+        </script>
+        <script>
+            // 5. Wait for the page and all scripts to load, then render the widget
+            document.addEventListener("DOMContentLoaded", function() {
+                if (window.ChatWidget && typeof window.ChatWidget.render === 'function') {
+                    window.ChatWidget.render('ai-chat-widget-container');
+                } else {
+                    console.error("ChatWidget is not available. Check that the script is loaded correctly.");
+                }
+            });
+        </script>
+    </body>
+</html>
